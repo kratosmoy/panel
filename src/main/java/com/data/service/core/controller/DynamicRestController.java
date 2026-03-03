@@ -57,15 +57,13 @@ public class DynamicRestController {
         return ResponseEntity.ok(service.getMetric(request));
     }
 
-<<<<<<< HEAD
     @PostMapping("/query")
     public ResponseEntity<?> query(@PathVariable String entity, @RequestBody MetricRequest request) {
         GenericService service = getServiceOrThrow(entity);
         return ResponseEntity.ok(service.query(request));
     }
 
-=======
->>>>>>> e6cf7201630de0e163a96f3938b3af3d49e234e0
+
     private GenericService getServiceOrThrow(String entity) {
         if (!registry.hasEntity(entity)) {
             throw new EntityNotFoundException("Unknown entity: " + entity);

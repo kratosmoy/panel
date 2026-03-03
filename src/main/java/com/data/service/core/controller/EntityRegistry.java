@@ -10,10 +10,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
-<<<<<<< HEAD
 import jakarta.persistence.EntityManager;
-=======
->>>>>>> e6cf7201630de0e163a96f3938b3af3d49e234e0
 
 /**
  * Auto-discovers all EntityMapper beans and creates corresponding
@@ -26,11 +23,7 @@ public class EntityRegistry {
     private final Map<String, GenericService<?, ?>> serviceMap = new HashMap<>();
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
-<<<<<<< HEAD
     public EntityRegistry(ApplicationContext context, EntityManager entityManager) {
-=======
-    public EntityRegistry(ApplicationContext context) {
->>>>>>> e6cf7201630de0e163a96f3938b3af3d49e234e0
         // Find all beans that implement EntityMapper
         Map<String, EntityMapper> mappers = context.getBeansOfType(EntityMapper.class);
 
@@ -56,13 +49,9 @@ public class EntityRegistry {
                             (JpaRepository) repoBean,
                             (JpaSpecificationExecutor) repoBean,
                             mapper,
-<<<<<<< HEAD
                             (Class) modelClass,
                             (Class) entityClass,
                             entityManager);
-=======
-                            (Class) modelClass);
->>>>>>> e6cf7201630de0e163a96f3938b3af3d49e234e0
 
                     // Register it: "Trade" -> "trades"
                     String entityKey = modelClass.getSimpleName().toLowerCase() + "s";

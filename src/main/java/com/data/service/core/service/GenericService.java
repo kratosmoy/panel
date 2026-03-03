@@ -31,31 +31,21 @@ public class GenericService<M, E> {
     private final JpaSpecificationExecutor<E> specExecutor;
     private final EntityMapper<M, E> mapper;
     private final Class<M> modelClass;
-<<<<<<< HEAD
     private final Class<E> entityClass;
     private final EntityManager entityManager;
-=======
->>>>>>> e6cf7201630de0e163a96f3938b3af3d49e234e0
 
     public GenericService(JpaRepository<E, Long> repository,
             JpaSpecificationExecutor<E> specExecutor,
             EntityMapper<M, E> mapper,
-<<<<<<< HEAD
             Class<M> modelClass,
             Class<E> entityClass,
             EntityManager entityManager) {
-=======
-            Class<M> modelClass) {
->>>>>>> e6cf7201630de0e163a96f3938b3af3d49e234e0
         this.repository = repository;
         this.specExecutor = specExecutor;
         this.mapper = mapper;
         this.modelClass = modelClass;
-<<<<<<< HEAD
         this.entityClass = entityClass;
         this.entityManager = entityManager;
-=======
->>>>>>> e6cf7201630de0e163a96f3938b3af3d49e234e0
     }
 
     public Class<M> getModelClass() {

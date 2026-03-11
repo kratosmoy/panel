@@ -27,6 +27,18 @@ public class GenericSpecification<T> implements Specification<T> {
             value = LocalDate.parse((String) value);
         }
 
+        // Handle Global Keyword Search
+        if ("_keyword_".equals(key)) {
+            String keyword = "%" + value + "%";
+            java.util.List<Predicate> predicates = new java.util.ArrayList<>();
+            root.getModel().getAttributes().forEach(attr -> {
+                if (attr.getJavaType() == String.class) {
+                    predicates.add(builder.like(root.get(attr.getName()), keyword));
+                }
+            });
+            return builder.or(predicates.toArray(new Predicate[0]));
+        }
+
         switch (op) {
             case EQUALITY:
                 return builder.equal(root.get(key), value);
@@ -40,6 +52,14 @@ public class GenericSpecification<T> implements Specification<T> {
                     return builder.gt(root.get(key).as(Double.class), ((Number) value).doubleValue());
                 }
                 return builder.greaterThan(root.get(key), value.toString());
+            case GREATER_THAN_EQUAL:
+                if (value instanceof LocalDate) {
+                    return builder.greaterThanOrEqualTo(root.get(key), (LocalDate) value);
+                }
+                if (value instanceof Number) {
+                    return builder.ge(root.get(key).as(Double.class), ((Number) value).doubleValue());
+                }
+                return builder.greaterThanOrEqualTo(root.get(key), value.toString());
             case LESS_THAN:
                 if (value instanceof LocalDate) {
                     return builder.lessThan(root.get(key), (LocalDate) value);
@@ -48,6 +68,14 @@ public class GenericSpecification<T> implements Specification<T> {
                     return builder.lt(root.get(key).as(Double.class), ((Number) value).doubleValue());
                 }
                 return builder.lessThan(root.get(key), value.toString());
+            case LESS_THAN_EQUAL:
+                if (value instanceof LocalDate) {
+                    return builder.lessThanOrEqualTo(root.get(key), (LocalDate) value);
+                }
+                if (value instanceof Number) {
+                    return builder.le(root.get(key).as(Double.class), ((Number) value).doubleValue());
+                }
+                return builder.lessThanOrEqualTo(root.get(key), value.toString());
             case LIKE:
                 return builder.like(root.get(key), "%" + value + "%");
             case STARTS_WITH:

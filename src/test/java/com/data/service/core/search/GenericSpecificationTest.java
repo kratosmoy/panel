@@ -3,7 +3,11 @@ package com.data.service.core.search;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Path;
+import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import jakarta.persistence.metamodel.Attribute;
+import jakarta.persistence.metamodel.EntityType;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,6 +35,15 @@ class GenericSpecificationTest {
 
     @Mock
     private Path path;
+
+    @Mock
+    private EntityType<Object> model;
+
+    @Mock
+    private Attribute<Object, String> stringAttribute;
+
+    @Mock
+    private Attribute<Object, Integer> intAttribute;
 
     @BeforeEach
     void setUp() {
@@ -122,5 +135,29 @@ class GenericSpecificationTest {
 
         spec.toPredicate(root, query, builder);
         verify(builder).equal(any(Path.class), eq(LocalDate.of(2023, 1, 1)));
+    }
+
+    @Test
+    void testKeywordSearch() {
+        SearchCriteria criteria = new SearchCriteria("_keyword_", SearchOperation.EQUALITY, "test");
+        GenericSpecification<Object> spec = new GenericSpecification<>(criteria);
+
+        lenient().when(root.getModel()).thenReturn(model);
+        lenient().when(model.getAttributes()).thenReturn((Set) Set.of(stringAttribute, intAttribute));
+
+        lenient().when(stringAttribute.getJavaType()).thenReturn((Class) String.class);
+        lenient().when(stringAttribute.getName()).thenReturn("stringField");
+        
+        lenient().when(intAttribute.getJavaType()).thenReturn((Class) Integer.class);
+        
+        Path stringPath = mock(Path.class);
+        lenient().when(root.get("stringField")).thenReturn(stringPath);
+        
+        Predicate likePredicate = mock(Predicate.class);
+        lenient().when(builder.like(stringPath, "%test%")).thenReturn(likePredicate);
+
+        spec.toPredicate(root, query, builder);
+        
+        verify(builder).or(likePredicate);
     }
 }

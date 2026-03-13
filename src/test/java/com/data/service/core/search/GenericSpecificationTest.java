@@ -11,11 +11,14 @@ import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -157,7 +160,11 @@ class GenericSpecificationTest {
         lenient().when(builder.like(stringPath, "%test%")).thenReturn(likePredicate);
 
         spec.toPredicate(root, query, builder);
-        
-        verify(builder).or(likePredicate);
+
+        ArgumentCaptor<Predicate[]> predicatesCaptor = ArgumentCaptor.forClass(Predicate[].class);
+        verify(builder).or(predicatesCaptor.capture());
+        Predicate[] predicates = predicatesCaptor.getValue();
+        assertEquals(1, predicates.length);
+        assertSame(likePredicate, predicates[0]);
     }
 }

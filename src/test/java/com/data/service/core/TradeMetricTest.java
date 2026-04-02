@@ -18,6 +18,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oauth2Login;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 
@@ -66,6 +67,7 @@ public class TradeMetricTest {
                 new SearchCriteria("tradeType", SearchOperation.EQUALITY, "SPOT")));
 
         mockMvc.perform(post("/api/trades/metric")
+                .with(oauth2Login())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -80,6 +82,7 @@ public class TradeMetricTest {
                 new SearchCriteria("amount", SearchOperation.GREATER_THAN, 150.0)));
 
         mockMvc.perform(post("/api/trades/metric")
+                .with(oauth2Login())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())

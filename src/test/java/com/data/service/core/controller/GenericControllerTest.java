@@ -1,6 +1,7 @@
 package com.data.service.core.controller;
 
 import com.data.service.core.search.MetricRequest;
+import com.data.service.core.search.SearchRequest;
 import com.data.service.core.service.GenericService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -93,6 +94,19 @@ class GenericControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(10.5, response.getBody());
         verify(service, times(1)).getMetric(request);
+    }
+
+    @Test
+    void testQuery() {
+        SearchRequest request = new SearchRequest();
+        TestModel model = new TestModel(2L, "query-result");
+        when(service.query(request)).thenReturn(List.of(model));
+
+        ResponseEntity<List<TestModel>> response = testController.query(request);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(List.of(model), response.getBody());
+        verify(service, times(1)).query(request);
     }
 
     static class TestModel {

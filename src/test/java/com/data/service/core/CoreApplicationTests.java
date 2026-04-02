@@ -8,6 +8,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oauth2Login;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -20,7 +21,7 @@ class CoreApplicationTests {
 	@Test
 	void testRestfulServiceLoadsAndReturnsOk() throws Exception {
 		// Testing if the Trade GenericController endpoints respond correctly.
-		mockMvc.perform(get("/api/trades"))
+		mockMvc.perform(get("/api/trades").with(oauth2Login()))
 				.andExpect(status().isOk());
 	}
 }

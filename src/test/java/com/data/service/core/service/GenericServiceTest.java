@@ -2,6 +2,7 @@ package com.data.service.core.service;
 
 import com.data.service.core.mapper.EntityMapper;
 import com.data.service.core.search.MetricRequest;
+import com.data.service.core.search.SearchRequest;
 import com.data.service.core.search.SearchCriteria;
 import com.data.service.core.search.SearchOperation;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,6 +14,15 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Tuple;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Path;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -36,11 +46,29 @@ class GenericServiceTest {
     @Mock
     private EntityMapper<TestModel, TestEntity> mapper;
 
+    @Mock
+    private EntityManager entityManager;
+
+    @Mock
+    private CriteriaBuilder criteriaBuilder;
+
+    @Mock
+    private CriteriaQuery<Tuple> criteriaQuery;
+
+    @Mock
+    private Root<TestEntity> root;
+
+    @Mock
+    private TypedQuery<Tuple> typedQuery;
+
+    @Mock
+    private Predicate predicate;
+
     private TestService testService;
 
     @BeforeEach
     void setUp() {
-        testService = new TestService(repository, specExecutor, mapper);
+        testService = new TestService(repository, specExecutor, mapper, entityManager);
     }
 
     @Test
@@ -98,15 +126,21 @@ class GenericServiceTest {
     void testGetMetricCount() {
         MetricRequest request = new MetricRequest();
         request.setMetricType("COUNT");
-        request.setFilters(
-                Collections.singletonList(new SearchCriteria("someField", SearchOperation.EQUALITY, "value")));
+        Expression<Long> countExpression = mock(Expression.class);
+        Tuple tuple = mock(Tuple.class);
 
-        when(specExecutor.count(any())).thenReturn(5L);
+        when(entityManager.getCriteriaBuilder()).thenReturn(criteriaBuilder);
+        when(criteriaBuilder.createTupleQuery()).thenReturn(criteriaQuery);
+        when(criteriaQuery.from(TestEntity.class)).thenReturn(root);
+        when(criteriaBuilder.count(root)).thenReturn(countExpression);
+        when(entityManager.createQuery(criteriaQuery)).thenReturn(typedQuery);
+        when(typedQuery.getResultList()).thenReturn(List.of(tuple));
+        when(tuple.get("metricValue")).thenReturn(5L);
 
         Object result = testService.getMetric(request);
 
         assertEquals(5L, result);
-        verify(specExecutor, times(1)).count(any());
+        verify(entityManager, times(1)).createQuery(criteriaQuery);
     }
 
     @Test
@@ -115,16 +149,24 @@ class GenericServiceTest {
         MetricRequest request = new MetricRequest();
         request.setMetricType("SUM");
         request.setField("doubleField");
+        Expression<Number> sumExpression = mock(Expression.class);
+        @SuppressWarnings("rawtypes")
+        Path numberPath = mock(Path.class);
+        Tuple tuple = mock(Tuple.class);
 
-        TestEntity e1 = new TestEntity(1L, "val1", 50.0);
-        TestEntity e2 = new TestEntity(2L, "val2", 25.5);
-
-        when(specExecutor.findAll(nullable(Specification.class))).thenReturn(List.of(e1, e2));
+        when(entityManager.getCriteriaBuilder()).thenReturn(criteriaBuilder);
+        when(criteriaBuilder.createTupleQuery()).thenReturn(criteriaQuery);
+        when(criteriaQuery.from(TestEntity.class)).thenReturn(root);
+        when(root.get("doubleField")).thenReturn(numberPath);
+        when(criteriaBuilder.sum(numberPath)).thenReturn(sumExpression);
+        when(entityManager.createQuery(criteriaQuery)).thenReturn(typedQuery);
+        when(typedQuery.getResultList()).thenReturn(List.of(tuple));
+        when(tuple.get("metricValue")).thenReturn(75.5);
 
         Object result = testService.getMetric(request);
 
         assertEquals(75.5, result);
-        verify(specExecutor, times(1)).findAll(nullable(Specification.class));
+        verify(entityManager, times(1)).createQuery(criteriaQuery);
     }
 
     @Test
@@ -134,12 +176,26 @@ class GenericServiceTest {
         request.setMetricType("SUM");
         request.setField("doubleField");
         request.setGroupBy(List.of("stringField"));
+        @SuppressWarnings("rawtypes")
+        Path groupPath = mock(Path.class);
+        @SuppressWarnings("rawtypes")
+        Path numberPath = mock(Path.class);
+        Expression<Number> sumExpression = mock(Expression.class);
+        Tuple tuple1 = mock(Tuple.class);
+        Tuple tuple2 = mock(Tuple.class);
 
-        TestEntity e1 = new TestEntity(1L, "group1", 50.0);
-        TestEntity e2 = new TestEntity(2L, "group1", 25.0);
-        TestEntity e3 = new TestEntity(3L, "group2", 10.0);
-
-        when(specExecutor.findAll(nullable(Specification.class))).thenReturn(List.of(e1, e2, e3));
+        when(entityManager.getCriteriaBuilder()).thenReturn(criteriaBuilder);
+        when(criteriaBuilder.createTupleQuery()).thenReturn(criteriaQuery);
+        when(criteriaQuery.from(TestEntity.class)).thenReturn(root);
+        when(root.get("stringField")).thenReturn(groupPath);
+        when(root.get("doubleField")).thenReturn(numberPath);
+        when(criteriaBuilder.sum(numberPath)).thenReturn(sumExpression);
+        when(entityManager.createQuery(criteriaQuery)).thenReturn(typedQuery);
+        when(typedQuery.getResultList()).thenReturn(List.of(tuple1, tuple2));
+        when(tuple1.get("stringField")).thenReturn("group1");
+        when(tuple1.get("metricValue")).thenReturn(75.0);
+        when(tuple2.get("stringField")).thenReturn("group2");
+        when(tuple2.get("metricValue")).thenReturn(10.0);
 
         Object result = testService.getMetric(request);
 
@@ -152,6 +208,23 @@ class GenericServiceTest {
 
         Map<String, Object> g2 = list.stream().filter(m -> "group2".equals(m.get("stringField"))).findFirst().get();
         assertEquals(10.0, g2.get("sum"));
+    }
+
+    @Test
+    void testQuery() {
+        SearchRequest request = new SearchRequest();
+        request.setConditions(Collections.singletonList(new SearchCriteria("stringField", SearchOperation.EQUALITY, "value")));
+
+        TestEntity entity = new TestEntity(1L, "value", 100.0);
+        TestModel model = new TestModel(1L, "value", 100.0);
+
+        when(specExecutor.findAll(any(Specification.class))).thenReturn(List.of(entity));
+        when(mapper.toModel(entity)).thenReturn(model);
+
+        List<TestModel> result = testService.query(request);
+
+        assertEquals(List.of(model), result);
+        verify(specExecutor, times(1)).findAll(any(Specification.class));
     }
 
     static class TestModel {
@@ -181,8 +254,9 @@ class GenericServiceTest {
     static class TestService extends GenericService<TestModel, TestEntity> {
         public TestService(JpaRepository<TestEntity, Long> repository,
                 JpaSpecificationExecutor<TestEntity> specExecutor,
-                EntityMapper<TestModel, TestEntity> mapper) {
-            super(repository, specExecutor, mapper, TestModel.class);
+                EntityMapper<TestModel, TestEntity> mapper,
+                EntityManager entityManager) {
+            super(repository, specExecutor, mapper, TestModel.class, TestEntity.class, entityManager);
         }
     }
 }

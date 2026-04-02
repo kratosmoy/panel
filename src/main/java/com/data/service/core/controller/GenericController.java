@@ -1,6 +1,7 @@
 package com.data.service.core.controller;
 
 import com.data.service.core.search.MetricRequest;
+import com.data.service.core.search.SearchRequest;
 import com.data.service.core.service.GenericService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -52,7 +53,7 @@ public abstract class GenericController<M, E> {
     }
 
     @PostMapping("/query")
-    public ResponseEntity<List<M>> query(@RequestBody MetricRequest request) {
+    public ResponseEntity<List<M>> query(@RequestBody SearchRequest request) {
         return ResponseEntity.ok(service.query(request));
     }
 }

@@ -2,6 +2,7 @@ package com.data.service.core;
 
 import com.data.service.core.model.TradeEntity;
 import com.data.service.core.repository.TradeRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -16,6 +17,25 @@ class TradeIntegrationTest {
 
     @Autowired
     TradeRepository tradeRepository;
+
+    @BeforeEach
+    void setUp() {
+        tradeRepository.deleteAll();
+        tradeRepository.save(TradeEntity.builder()
+                .tradeType("SPOT")
+                .amount(1000.0)
+                .currency("USD")
+                .tradeDate(LocalDate.now())
+                .counterparty("Bank A")
+                .build());
+        tradeRepository.save(TradeEntity.builder()
+                .tradeType("FORWARD")
+                .amount(25000.0)
+                .currency("EUR")
+                .tradeDate(LocalDate.now())
+                .counterparty("Bank B")
+                .build());
+    }
 
     @Test
     void testTradesAreLoaded() {

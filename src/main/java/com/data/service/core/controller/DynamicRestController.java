@@ -4,25 +4,24 @@ import com.data.service.core.search.MetricRequest;
 import com.data.service.core.search.SearchRequest;
 import com.data.service.core.service.GenericService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
 /**
- * Single dynamic REST controller that handles all entity CRUD operations.
- * Routes /api/{entity}/** requests to the correct GenericService via
- * EntityRegistry.
+ * Shared generic entity dispatch used by audience-scoped REST controllers.
  */
-@RestController
-@RequestMapping("/api/{entity}")
-@RequiredArgsConstructor
 @SuppressWarnings({ "unchecked", "rawtypes" })
-public class DynamicRestController {
+public abstract class DynamicRestController {
 
     private final EntityRegistry registry;
     private final ObjectMapper objectMapper;
+
+    protected DynamicRestController(EntityRegistry registry, ObjectMapper objectMapper) {
+        this.registry = registry;
+        this.objectMapper = objectMapper;
+    }
 
     @GetMapping
     public ResponseEntity<?> getAll(@PathVariable String entity) {
@@ -65,7 +64,7 @@ public class DynamicRestController {
     }
 
 
-    private GenericService getServiceOrThrow(String entity) {
+    protected GenericService getServiceOrThrow(String entity) {
         if (!registry.hasEntity(entity)) {
             throw new EntityNotFoundException("Unknown entity: " + entity);
         }

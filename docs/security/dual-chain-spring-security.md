@@ -4,10 +4,20 @@
 
 The service now uses two application-level security chains:
 
-- `/api/grafana/**` for Grafana mTLS application authentication
-- `/api/**`, `/oauth2/**`, and `/login/oauth2/**` for browser user authentication through PingFederate
+- `/api/grafana/**` for Grafana mTLS application authentication, including `/api/grafana/{entity}/**` generic entity APIs
+- `/api/user/**`, `/api/me`, `/api/auth/*`, `/oauth2/**`, and `/login/oauth2/**` for browser user authentication through PingFederate
 
 Grafana authentication resolves the x509 certificate subject `CN` and matches it against `panel.security.application-clients`.
+
+## Route layout
+
+The API surface is now audience-scoped:
+
+- Browser user generic entity APIs live under `/api/user/{entity}/**`
+- Grafana generic entity APIs live under `/api/grafana/{entity}/**`
+- Fixed user auth endpoints remain `/api/me`, `/api/auth/login`, and `/api/auth/logout`
+- Fixed Grafana principal inspection remains `/api/grafana/me`
+- The legacy generic route `/api/{entity}/**` has been removed
 
 ## Important mTLS constraint
 

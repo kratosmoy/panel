@@ -21,7 +21,7 @@ class CoreApplicationTests {
 	@Test
 	void testRestfulServiceLoadsAndReturnsOk() throws Exception {
 		// Testing if the Trade GenericController endpoints respond correctly.
-		mockMvc.perform(get("/api/trades").with(oauth2Login()))
+		mockMvc.perform(get("/api/user/trades").with(oauth2Login()))
 				.andExpect(status().isOk());
 	}
 }
